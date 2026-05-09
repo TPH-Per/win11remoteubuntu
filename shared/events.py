@@ -1,23 +1,16 @@
-"""
-All JSON events sent over STREAM_INPUT and STREAM_CONTROL.
-Kept minimal — small JSON = fast serialization over TCP.
-"""
-
 from pydantic import BaseModel
 from typing import Literal
 import json
 
-# ── INPUT EVENTS (Windows → Ubuntu, stream 0x02) ──────────────────────
-
 class MouseMoveEvent(BaseModel):
     t: Literal['mm'] = 'mm'
-    x: float
+    x: float   # 0.0–1.0
     y: float
 
 class MouseButtonEvent(BaseModel):
     t: Literal['mb'] = 'mb'
     b: Literal['l', 'r', 'm']
-    d: bool
+    d: bool    # down=True
 
 class MouseScrollEvent(BaseModel):
     t: Literal['ms'] = 'ms'
@@ -27,13 +20,15 @@ class MouseScrollEvent(BaseModel):
 class KeyEvent(BaseModel):
     t: Literal['k'] = 'k'
     key: str
-    d: bool
+    d: bool    # down=True
 
-# ── CONTROL EVENTS (bidirectional, stream 0x03) ────────────────────────
+class ResolutionEvent(BaseModel):
+    t: Literal['res'] = 'res'
+    w: int
+    h: int
 
-class ClipboardEvent(BaseModel):
-    t: Literal['clip'] = 'clip'
-    text: str
+class KeyframeRequestEvent(BaseModel):
+    t: Literal['kf'] = 'kf'
 
 class PingEvent(BaseModel):
     t: Literal['ping'] = 'ping'
@@ -43,33 +38,25 @@ class PongEvent(BaseModel):
     t: Literal['pong'] = 'pong'
     ts: float
 
-class KeyframeRequestEvent(BaseModel):
-    t: Literal['kf'] = 'kf'
-
-class ResolutionEvent(BaseModel):
-    t: Literal['res'] = 'res'
-    w: int
-    h: int
-
-# ── Deserialization helpers ────────────────────────────────────────────
-
-_INPUT_MAP = {'mm': MouseMoveEvent, 'mb': MouseButtonEvent,
-               'ms': MouseScrollEvent, 'k': KeyEvent}
-
-_CONTROL_MAP = {'clip': ClipboardEvent, 'ping': PingEvent,
-                 'pong': PongEvent, 'kf': KeyframeRequestEvent,
-                 'res': ResolutionEvent}
+class ClipboardEvent(BaseModel):
+    t: Literal['clip'] = 'clip'
+    text: str
 
 def parse_input_event(data: bytes):
     obj = json.loads(data)
-    cls = _INPUT_MAP.get(obj.get('t'))
-    if cls is None:
-        raise ValueError(f"Unknown input event: {obj.get('t')}")
-    return cls(**obj)
+    match obj.get('t'):
+        case 'mm':  return MouseMoveEvent(**obj)
+        case 'mb':  return MouseButtonEvent(**obj)
+        case 'ms':  return MouseScrollEvent(**obj)
+        case 'k':   return KeyEvent(**obj)
+        case _:     return None
 
 def parse_control_event(data: bytes):
     obj = json.loads(data)
-    cls = _CONTROL_MAP.get(obj.get('t'))
-    if cls is None:
-        raise ValueError(f"Unknown control event: {obj.get('t')}")
-    return cls(**obj)
+    match obj.get('t'):
+        case 'res':  return ResolutionEvent(**obj)
+        case 'kf':   return KeyframeRequestEvent(**obj)
+        case 'ping': return PingEvent(**obj)
+        case 'pong': return PongEvent(**obj)
+        case 'clip': return ClipboardEvent(**obj)
+        case _:      return None

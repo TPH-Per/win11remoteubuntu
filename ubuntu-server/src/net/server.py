@@ -13,15 +13,10 @@ from ..input.executor import InputExecutor
 logger = logging.getLogger(__name__)
 
 def capture_sync_start(capture):
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(capture.start())
-    loop.close()
+    capture.start_sync()
 
 def capture_sync_grab(capture):
-    loop = asyncio.new_event_loop()
-    res = loop.run_until_complete(capture.grab_frame())
-    loop.close()
-    return res
+    return capture.grab_frame_sync()
 
 class ThunderServer:
     def __init__(self, host: str, port: int, fps: int, bitrate_kbps: int, executor_factory=None):

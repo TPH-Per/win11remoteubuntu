@@ -21,6 +21,16 @@ def main():
     logging.basicConfig(level=getattr(logging, args.log_level.upper()),
                         format='[%(asctime)s] %(levelname)s %(name)s: %(message)s')
     
+    wayland = os.environ.get('WAYLAND_DISPLAY')
+    xdg = os.environ.get('XDG_SESSION_TYPE', '')
+    if wayland or xdg.lower() == 'wayland':
+        print("WARNING: Wayland detected. mss requires X11.")
+        print("Fix: Log out → chọn 'Ubuntu on Xorg' ở màn hình đăng nhập")
+        print("  OR run: export DISPLAY=:0 GDK_BACKEND=x11 XDG_SESSION_TYPE=x11")
+        print("  OR force X11 session permanently:")
+        print("     sudo sed -i 's/#WaylandEnable=false/WaylandEnable=false/' /etc/gdm3/custom.conf")
+        sys.exit(1)
+        
     if not os.environ.get('DISPLAY') and sys.platform != 'win32':
         print("ERROR: DISPLAY environment variable not set.")
         print("Run: export DISPLAY=:0")

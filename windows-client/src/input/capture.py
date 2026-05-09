@@ -19,11 +19,13 @@ class InputCapture:
         self._mouse_listener = pmouse.Listener(
             on_move=self._on_mouse_move,
             on_click=self._on_mouse_click,
-            on_scroll=self._on_mouse_scroll
+            on_scroll=self._on_mouse_scroll,
+            suppress=True
         )
         self._keyboard_listener = pkeyboard.Listener(
             on_press=self._on_key_press,
-            on_release=self._on_key_release
+            on_release=self._on_key_release,
+            suppress=True
         )
         self._mouse_listener.start()
         self._keyboard_listener.start()

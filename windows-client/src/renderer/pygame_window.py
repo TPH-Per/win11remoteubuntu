@@ -21,6 +21,7 @@ class PygameWindow:
             pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
         )
         self._clock = pygame.time.Clock()
+        self._font = pygame.font.SysFont(None, 36)
         self._running = True
 
     def push_frame(self, frame_rgb: np.ndarray) -> None:
@@ -65,7 +66,10 @@ class PygameWindow:
         pygame.display.toggle_fullscreen()
 
     def _draw_overlay(self):
-        pass # To be implemented
+        state_str = "REMOTE" if self._kvm.state.name == "FOCUSED_REMOTE" else "LOCAL"
+        color = (0, 255, 0) if state_str == "REMOTE" else (255, 0, 0)
+        text_surf = self._font.render(f" KVM: {state_str} ", True, (255, 255, 255), color)
+        self._screen.blit(text_surf, (10, 10))
 
     def _render(self) -> None:
         try:

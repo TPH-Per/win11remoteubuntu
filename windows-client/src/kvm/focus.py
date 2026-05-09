@@ -46,6 +46,12 @@ class KVMFocusManager:
 
     def _enter_remote(self) -> None:
         self._state = KVMState.FOCUSED_REMOTE
+        
+        surf = pygame.display.get_surface()
+        if surf:
+            w, h = surf.get_size()
+            pygame.mouse.set_pos(w // 2, h // 2)
+            
         pygame.event.set_grab(True)
         pygame.mouse.set_visible(False)
         self._capture.start()

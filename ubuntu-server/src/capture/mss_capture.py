@@ -14,6 +14,21 @@ class MssCapture(CaptureBackend):
         self._monitor = None
         self._buf = None
 
+    def start_sync(self) -> None:
+        self._sct = mss.mss()
+        self._monitor = self._sct.monitors[self._monitor_index]
+        w, h = self._monitor['width'], self._monitor['height']
+        self._buf = np.empty((h, w, 3), dtype=np.uint8)
+
+    def grab_frame_sync(self) -> np.ndarray:
+        screenshot = self._sct.grab(self._monitor)
+        np.copyto(self._buf, np.array(screenshot)[..., :3])
+        return self._buf
+
+    def stop_sync(self) -> None:
+        if self._sct:
+            self._sct.close()
+
     async def start(self) -> None:
         self._sct = mss.mss()
         self._monitor = self._sct.monitors[self._monitor_index]
