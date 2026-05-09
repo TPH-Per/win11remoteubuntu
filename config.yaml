@@ -1,0 +1,33 @@
+# ThunderKVM Configuration
+# Edit this file to customize behavior.
+# Both server and client read this file (place in project root or pass --config path).
+
+network:
+  ubuntu_ip: "192.168.100.2"     # Static IP assigned to Ubuntu Thunderbolt interface
+  windows_ip: "192.168.100.1"    # Static IP assigned to Windows Thunderbolt adapter
+  port: 7777                     # TCP port for all streams
+
+server:                          # Ubuntu settings
+  monitor: 1                     # Monitor index (1=primary, 2=secondary)
+  fps: 60                        # Target capture+encode FPS
+  bitrate_kbps: 4000             # H.264 encode bitrate
+  encoder: "auto"                # auto | software | vaapi | nvenc
+  display: ":0"                  # X11 display string
+
+client:                          # Windows settings
+  fullscreen: false              # Start in fullscreen
+  decoder: "software"            # software | dxva (DirectX Video Acceleration)
+  show_overlay: true             # Show FPS/RTT overlay in corner
+  overlay_position: "top-left"   # top-left | top-right | bottom-left | bottom-right
+
+kvm:
+  toggle_hotkey: "scroll_lock"   # scroll_lock | ctrl_alt_tab | right_ctrl | f12
+  cursor_mode: "relative"        # relative (SDL2) | warp (fallback)
+  show_state_indicator: true     # Flash "REMOTE"/"LOCAL" on toggle
+
+performance:
+  tcp_send_buffer: 262144        # TCP SO_SNDBUF in bytes (256KB default)
+  tcp_recv_buffer: 262144        # TCP SO_RCVBUF in bytes
+  frame_queue_size: 2            # Decoder queue: drop oldest if full
+  input_rate_limit_hz: 60        # Max mouse_move events/sec sent to Ubuntu
+  keyframe_interval_s: 4         # Force IDR keyframe every N seconds
