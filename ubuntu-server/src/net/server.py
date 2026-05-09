@@ -2,7 +2,6 @@ import socket
 import threading
 import time
 import logging
-import asyncio
 from shared.mux import FrameWriter, FrameDispatcher
 from shared.protocol import STREAM_VIDEO, STREAM_INPUT, STREAM_CONTROL
 from shared.events import ResolutionEvent, parse_input_event, parse_control_event
@@ -82,7 +81,11 @@ class ThunderServer:
         dispatcher.on(STREAM_CONTROL, lambda data: self._handle_control(data, writer, encoder))
         dispatcher.start()
         
-        self._capture_loop(capture, encoder, writer)
+        try:
+            self._capture_loop(capture, encoder, writer)
+        finally:
+            encoder.flush()
+            capture.stop_sync()
 
     def _capture_loop(self, capture, encoder, writer: FrameWriter) -> None:
         frame_interval = 1.0 / self.fps

@@ -1,7 +1,7 @@
 import time
+import json
 from pynput import mouse as pmouse, keyboard as pkeyboard
 from shared.events import MouseMoveEvent, MouseButtonEvent, MouseScrollEvent, KeyEvent
-import json
 
 class InputCapture:
     def __init__(self, window_getter, send_fn):
@@ -44,9 +44,8 @@ class InputCapture:
         rect = self._window_getter()
         if not rect: return
         
-        # Calculate relative coordinates
-        rel_x = (x - rect.left) / rect.width
-        rel_y = (y - rect.top) / rect.height
+        rel_x = (x - getattr(rect, 'x', 0)) / rect.width
+        rel_y = (y - getattr(rect, 'y', 0)) / rect.height
         
         rel_x = max(0.0, min(1.0, rel_x))
         rel_y = max(0.0, min(1.0, rel_y))
@@ -64,19 +63,19 @@ class InputCapture:
         event = MouseScrollEvent(dx=int(dx), dy=int(dy))
         self._send_fn(event.model_dump_json().encode())
 
-    def _key_to_str(self, key):
+    def _key_name(self, key):
         if hasattr(key, 'char') and key.char is not None:
             return key.char
         return key.name
 
     def _on_key_press(self, key):
-        k_str = self._key_to_str(key)
+        k_str = self._key_name(key)
         if k_str:
             event = KeyEvent(key=k_str, d=True)
             self._send_fn(event.model_dump_json().encode())
 
     def _on_key_release(self, key):
-        k_str = self._key_to_str(key)
+        k_str = self._key_name(key)
         if k_str:
             event = KeyEvent(key=k_str, d=False)
             self._send_fn(event.model_dump_json().encode())

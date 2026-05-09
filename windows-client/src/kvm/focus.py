@@ -15,10 +15,15 @@ class KVMFocusManager:
         self._last_toggle = 0
         self._window_w = window_w
         self._window_h = window_h
+        self.on_toggle = None
 
     @property
     def state(self) -> KVMState:
         return self._state
+
+    def update_resolution(self, w: int, h: int) -> None:
+        self._window_w = w
+        self._window_h = h
 
     def handle_key(self, pygame_event) -> bool:
         """
@@ -55,9 +60,11 @@ class KVMFocusManager:
         pygame.event.set_grab(True)
         pygame.mouse.set_visible(False)
         self._capture.start()
+        if self.on_toggle: self.on_toggle()
 
     def _enter_local(self) -> None:
         self._state = KVMState.FOCUSED_LOCAL
         pygame.event.set_grab(False)
         pygame.mouse.set_visible(True)
         self._capture.stop()
+        if self.on_toggle: self.on_toggle()

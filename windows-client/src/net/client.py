@@ -31,7 +31,7 @@ class ThunderClient:
             self._writer.write(STREAM_INPUT, data)
 
         input_capture = InputCapture(window_getter=get_window_rect, send_fn=send_input)
-        kvm = KVMFocusManager(input_capture, self._w, self._h)
+        self._kvm = KVMFocusManager(input_capture, self._w, self._h)
         
         # Start dispatcher
         dispatcher = FrameDispatcher(self._sock)
@@ -39,7 +39,7 @@ class ThunderClient:
         dispatcher.on(STREAM_CONTROL, self._handle_control)
         dispatcher.start()
         
-        self._window = PygameWindow(self._w, self._h, kvm, stats=None)
+        self._window = PygameWindow(self._w, self._h, self._kvm, stats=None)
         self._window.start()
         
         # Wait for user or disconnect
@@ -53,12 +53,16 @@ class ThunderClient:
 
     def _handle_control(self, data: bytes):
         event = parse_control_event(data)
+        if event is None:
+            return
         if event.t == 'res':
             self._w = event.w
             self._h = event.h
             if self._window:
                 self._window.w = event.w
                 self._window.h = event.h
+            if hasattr(self, '_kvm'):
+                self._kvm.update_resolution(event.w, event.h)
         elif event.t == 'ping':
             pass
         elif event.t == 'clip':
